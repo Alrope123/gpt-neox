@@ -22,7 +22,7 @@ import multiprocessing
 import os
 import sys
 
-import lm_dataformat as lmd
+import lmdataformat as lmd
 import numpy as np
 
 sys.path.append(
@@ -36,6 +36,7 @@ import ftfy
 from megatron.tokenizer import build_tokenizer
 from megatron.data import indexed_dataset
 from threading import Semaphore
+import paramiko
 
 
 class Encoder(object):
@@ -149,7 +150,7 @@ def get_args():
     return args
 
 
-def yield_from_files(fnames: list, semaphore):
+def yield_from_files(fnames: list, semaphore, sftp_client=None):
     """
     Iterator over input documents using lm_dataformat. Should be able to handle jsons / texts /
     other compressed formats. Also filters out empty documents.
@@ -158,7 +159,7 @@ def yield_from_files(fnames: list, semaphore):
     """
 
     def yielder(fname, semaphore):
-        for f in filter(lambda x: x, lmd.Reader(fname).stream_data()):
+        for f in filter(lambda x: x, lmd.Reader(fname, sftp_client).stream_data()):
             semaphore.acquire()
             yield f
 
@@ -175,12 +176,24 @@ def main():
     print(f"Vocab size: {tokenizer.vocab_size}")
     print(f"Output prefix: {args.output_prefix}")
 
+    # connect to SSH
+    client = paramiko.SSHClient()
+    client.load_system_host_keys("/home/alrope/.ssh/id_rsa")
+    client.connect('34.172.46.26')
+    sftp_client = client.open_sftp()
+    
+    # stdin, stdout, stderr = client.exec_command('ls -l')
+    # print(stdin)
+    # print(stdout)
+    # print(stderr)
+    # assert False
+
     # build a semaphore object to stop `yield_from_files` from getting ahead of encoder.encode and
     # hence building up memory
     semaphore = Semaphore(10000 + args.workers)
 
     # use multiprocessing to iterate over input documents
-    fin = yield_from_files(args.input.split(","), semaphore)
+    fin = yield_from_files(args.input.split(","), semaphore, sftp_client=sftp_client)
 
     if args.workers > 1:
         pool = multiprocessing.Pool(args.workers, initializer=encoder.initializer)

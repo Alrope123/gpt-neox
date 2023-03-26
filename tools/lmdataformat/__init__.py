@@ -145,7 +145,10 @@ class Reader:
 
     def _stream_data(self, get_meta=False, jsonl_key="text"):
         self.f_name = ""
-        files = listdir_or_file(self.in_path)
+        if self.sftp_client:
+            files = [self.in_path]
+        else:
+            files = listdir_or_file(self.in_path)
         if not files:
             raise FileNotFoundError(f"No valid file(s) found in {self.in_path}")
         for f in files:
@@ -214,6 +217,7 @@ class Reader:
         #     for line in f:
         #         yield line.decode('utf-8')
         fin = self.sftp_client.open(file)
+        print("Processing {}...".format(file))
         with gzip.GzipFile(fileobj=fin, mode='rb') as f:
             for line in f:
                 yield line.decode('utf-8')

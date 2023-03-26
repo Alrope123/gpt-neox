@@ -74,6 +74,12 @@ def get_args():
         "list",
     )
     group.add_argument(
+        "--input-range",
+        type=str,
+        required=True,
+        help="Range of files to read"
+    )
+    group.add_argument(
         "--jsonl-keys",
         nargs="+",
         default=["text"],
@@ -100,12 +106,12 @@ def get_args():
         help="What type of tokenizer to use.",
     )
     group.add_argument(
-        "--vocab-file", type=str, default=None, help="Path to the vocab file"
+        "--vocab-file", type=str, default="data/gpt2-vocab.json", help="Path to the vocab file"
     )
     group.add_argument(
         "--merge-file",
         type=str,
-        default=None,
+        default="data/gpt2-merges.txt",
         help="Path to the BPE merge file (if necessary).",
     )
     group.add_argument(
@@ -136,7 +142,7 @@ def get_args():
     group.add_argument(
         "--log-interval",
         type=int,
-        default=100,
+        default=10000,
         help="Interval between progress updates",
     )
     args = parser.parse_args()
@@ -178,6 +184,9 @@ def main():
         print(f"Vocab size: {tokenizer.vocab_size}")
         print(f"Output prefix: {args.output_prefix}")
 
+        low = int(args.input_range.split('-')[0])
+        high = int(args.input_range.split('-')[1])
+
         # connect to SSH
         client = paramiko.SSHClient()
         client.load_system_host_keys()
@@ -189,7 +198,7 @@ def main():
             _, stdout, _ = client.exec_command('ls /mnt/tank/c4/en/')
             filenames = stdout.readlines()
             filenames = ["/mnt/tank/c4/en/" + filename[:-1] for filename in filenames if 'train' in filename]
-            filenames = filenames[:2]
+            filenames = filenames[low:high]
         else:
             filenames = args.input.split(",")
 
@@ -219,11 +228,11 @@ def main():
         builders = {}
         bin_num = 0
         for key in args.jsonl_keys:
-            output_bin_files[key] = "{}_{}_{}_{}.bin".format(
-                args.output_prefix, key, "document", bin_num
+            output_bin_files[key] = "{}_{}_{}_{}-{}_{}.bin".format(
+                args.output_prefix, key, "document", low, high, bin_num
             )
-            output_idx_files[key] = "{}_{}_{}_{}.idx".format(
-                args.output_prefix, key, "document", bin_num
+            output_idx_files[key] = "{}_{}_{}_{}-{}_{}.idx".format(
+                args.output_prefix, key, "document", low, high, bin_num
             )
             builders[key] = indexed_dataset.make_builder(
                 output_bin_files[key],

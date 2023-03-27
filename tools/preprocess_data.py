@@ -281,17 +281,18 @@ def main():
             
                     # starting a new file
                     bin_num += 1
-                    output_bin_files[key] = "{}_{}_{}_{}.bin".format(
-                        args.output_prefix, key, "document", bin_num
-                    )
-                    output_idx_files[key] = "{}_{}_{}_{}.idx".format(
-                        args.output_prefix, key, "document", bin_num
-                    )
-                    builders[key] = indexed_dataset.make_builder(
-                        output_bin_files[key],
-                        impl=args.dataset_impl,
-                        vocab_size=tokenizer.vocab_size,
-                    )
+                    for key in args.jsonl_keys:
+                        output_bin_files[key] = "{}_{}_{}_{}-{}_{}.bin".format(
+                            args.output_prefix, key, "document", low, high, bin_num
+                        )
+                        output_idx_files[key] = "{}_{}_{}_{}-{}_{}.idx".format(
+                            args.output_prefix, key, "document", low, high, bin_num
+                        )
+                        builders[key] = indexed_dataset.make_builder(
+                            output_bin_files[key],
+                            impl=args.dataset_impl,
+                            vocab_size=tokenizer.vocab_size,
+                        )
 
         # save output file
         for key in args.jsonl_keys:

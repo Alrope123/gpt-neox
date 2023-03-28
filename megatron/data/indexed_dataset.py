@@ -583,6 +583,11 @@ class MMapIndexedDatasetBuilder(object):
         index = MMapIndexedDataset.Index(index_file_path(another_file))
         assert index.dtype == self._dtype
 
+        for doc_idx in index.doc_idx:
+            if doc_idx == 0:
+                continue
+            self._doc_idx.append(len(self._sizes) + doc_idx)
+
         for size in index.sizes:
             self._sizes.append(size)
 

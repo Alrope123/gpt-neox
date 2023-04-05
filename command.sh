@@ -20,4 +20,4 @@ python ./megatron/fused_kernels/setup.py install
 # taskset -c 36-39 python tools/preprocess_data.py --input c4-train --input-range 837-930 --tokenizer-type GPT2BPETokenizer  --output-prefix data/tokenized_data --num-docs 32424847 --workers 4 &> logs/837-930.txt
 # taskset -c 40-43 python tools/preprocess_data.py --input c4-train --input-range 930-1024 --tokenizer-type GPT2BPETokenizer  --output-prefix data/tokenized_data --num-docs 32424847 --workers 4 &> logs/930-1024.txt
 CUDA_VISIBLE_DEVICES=0 python ./deepy.py train.py -d configs 125M.yml local_setup.yml
-python ./tools/convert_sequential_to_hf.py  --input_dir checkpoints/global_step70000 --config_file checkpoints/global_step70000/configs/125M.yml --output_dir hf_model/
+python ./tools/convert_sequential_to_hf.py  --input_dir checkpoints/125M/global_step70000 --config_file checkpoints/125M/global_step70000/configs/125M.yml --output_dir hf_model/125M

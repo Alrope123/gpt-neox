@@ -689,6 +689,11 @@ class NeoXArgsTraining(NeoXArgsTemplate):
     Path to combined dataset to split.
     """
 
+    data_path_heldout: str = None
+    """
+    Path to validation dataset.
+    """
+
     use_shared_fs: bool = True
     """
     Whether to use a shared filesystem for data loading. If False, local rank 0 on all nodes will preprocess the data,

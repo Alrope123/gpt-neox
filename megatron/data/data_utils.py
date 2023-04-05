@@ -397,21 +397,43 @@ def build_train_valid_test_data_iterators(neox_args):
         else:
             # when just data_path is provided
             # split dataset into train, valid and test from data_path
-            train_ds, valid_ds, test_ds = build_train_valid_test_datasets(
-                data_prefix=neox_args.data_path,
-                use_shared_fs=neox_args.use_shared_fs,
-                data_impl=neox_args.data_impl,
-                splits_string=neox_args.split,
-                train_valid_test_num_samples=train_val_test_num_samples,
-                seq_length=neox_args.seq_length,
-                seed=neox_args.seed,
-                skip_warmup=(not neox_args.mmap_warmup),
-            )
+            if not neox_args.data_path_heldout:
+                train_ds, valid_ds, test_ds = build_train_valid_test_datasets(
+                    data_prefix=neox_args.data_path,
+                    use_shared_fs=neox_args.use_shared_fs,
+                    data_impl=neox_args.data_impl,
+                    splits_string=neox_args.split,
+                    train_valid_test_num_samples=train_val_test_num_samples,
+                    seq_length=neox_args.seq_length,
+                    seed=neox_args.seed,
+                    skip_warmup=(not neox_args.mmap_warmup),
+                )
+            else:
+                train_ds, _, _ = build_train_valid_test_datasets(
+                    data_prefix=neox_args.data_path,
+                    use_shared_fs=neox_args.use_shared_fs,
+                    data_impl=neox_args.data_impl,
+                    splits_string="1000,0,0",
+                    train_valid_test_num_samples=[train_val_test_num_samples[0], 0, 0],
+                    seq_length=neox_args.seq_length,
+                    seed=neox_args.seed,
+                    skip_warmup=(not neox_args.mmap_warmup),
+                )
+                _, valid_ds, _ = build_train_valid_test_datasets(
+                    data_prefix=neox_args.data_path_heldout,
+                    use_shared_fs=neox_args.use_shared_fs,
+                    data_impl=neox_args.data_impl,
+                    splits_string="0,1000,0",
+                    train_valid_test_num_samples=[0, train_val_test_num_samples[1], 0],
+                    seq_length=neox_args.seq_length,
+                    seed=neox_args.seed,
+                    skip_warmup=(not neox_args.mmap_warmup),
+                )
 
         # Build dataloders.
         train_dataloader = make_data_loader(train_ds, neox_args=neox_args)
         valid_dataloader = make_data_loader(valid_ds, neox_args=neox_args)
-        test_dataloader = make_data_loader(test_ds, neox_args=neox_args)
+        test_dataloader = make_data_loader(valid_ds, neox_args=neox_args)
 
         # Flags to know if we need to do training/validation/testing.
         do_train = train_dataloader is not None and neox_args.train_iters > 0

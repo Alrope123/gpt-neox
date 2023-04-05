@@ -41,7 +41,7 @@ Please investigate carefully whether your model is compatible with all architect
 
 def load_partitions(
     input_checkpoint_path, mp_partitions, layer_idx
-) -> list[torch.Tensor]:
+):
     """Returns a list containing all weights in a given layer from a model (across MP partitions)"""
 
     loaded_tp_ranks = [

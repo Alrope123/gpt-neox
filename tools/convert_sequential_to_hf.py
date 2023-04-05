@@ -58,7 +58,7 @@ def load_partitions(input_checkpoint_path, mp_partitions) -> List[torch.Tensor]:
 
 
 def get_state(
-    state_dicts: list[torch.Tensor],
+    state_dicts,
     key: str,
     layer_idx: int,
 ) -> torch.Tensor:
@@ -98,9 +98,9 @@ def create_config(neox_config):
                 neox_config, "make-vocab-size-divisible-by", default=128
             )
             self.model_parallel_size = get_key(neox_config, "model-parallel-size")
-            self.vocab_file = get_key(neox_config, "vocab-file")
-            self.merge_file = get_key(neox_config, "merge-file")
-            self.tokenizer_type = get_key(neox_config, "tokenizer-type")
+            self.vocab_file = get_key(neox_config, "vocab-file", "data/gpt2-vocab.json")
+            self.merge_file = get_key(neox_config, "merge-file", "data/gpt2-merges.txt")
+            self.tokenizer_type = get_key(neox_config, "tokenizer-type", "GPT2BPETokenizer")
 
             self.rank = 0
 

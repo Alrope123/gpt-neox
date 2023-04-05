@@ -980,3 +980,13 @@ def evaluate_and_print_results(
     print_rank_0("-" * length)
     print_rank_0(string)
     print_rank_0("-" * length)
+
+    # # save config files
+    # import os
+    # import json
+    # if torch.distributed.get_rank() == 0:
+    #     result_directory = os.path.join(neox_args.save, "validation_results")
+    #     if not os.path.exists(result_directory):
+    #         os.makedirs(result_directory, exist_ok=False)
+    #     with open(os.path.join(result_directory, "{}.json".format(iteration)), "w") as f:
+    #         json.dump(total_loss_dict, f)
